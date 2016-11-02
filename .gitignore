@@ -10,3 +10,8 @@ rel/example_project
 .rebar
 /.idea/
 /scheduler.iml
+.idea/
+scheduler.iml
+src/
+start.sh
+git
