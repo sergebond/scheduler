@@ -1,8 +1,8 @@
 -module(scheduler_app).
 
 -behaviour(application).
+-include("scheduler.hrl").
 
-%% Application callbacks
 -export([start/2, stop/1]).
 
 %% ===================================================================
@@ -10,7 +10,8 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    scheduler_sup:start_link().
+    {ok, SchedulerSup} = scheduler_sup:start_link(),
+    {ok, _QueuesSup} =  supervisor:start_child(SchedulerSup, ?CHILD(queues_sup, queues_sup, supervisor)).
 
 stop(_State) ->
     ok.
