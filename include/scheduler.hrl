@@ -14,3 +14,9 @@
 -define(CHILD(ID, Module, Type, Params), {ID, {Module, start_link, Params}, permanent, 5000, Type, [Module]}).
 
 -define(QUEUE_LENGTH, 1000).
+
+-record(task, {
+    pid :: integer(),
+    taskID :: integer(),
+    time :: integer(),
+    type :: staic|dynamic}).

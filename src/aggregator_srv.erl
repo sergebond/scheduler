@@ -25,7 +25,9 @@ init([]) ->
     {ok, []}.
 
 handle_call({to_db, List}, _From, Tasks) when is_list(List) ->
-    {reply, ok, Tasks ++ List};
+    NewTasks =  Tasks ++ List,
+    io:format("~n ++++++Length Tasks in aggregator ~p", [length(NewTasks)]),
+    {reply, ok, NewTasks};
 
 handle_call({from_db, PID, HowMuch}, _From, Tasks) ->
     save_to_db(Tasks),
@@ -38,8 +40,9 @@ handle_call(_Request, _From, State) ->
 handle_cast(_Request, State) ->
     {noreply, State}.
 
-handle_info(hartbeat, Tasks) ->
+handle_info(heartbeat, Tasks) ->
     save_to_db(Tasks),
+    erlang:send_after(?HEARTBEAT_INTERVAL, self(), heartbeat),
     {noreply, []};
 
 handle_info(_Info, State) ->
@@ -54,6 +57,9 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+save_to_db([]) ->
+%%    io:format("Theres no tasks to save"),
+ok;
 save_to_db(Tasks) ->
     %% insert into tablename (id,blabla) values(1,'werwer'),(2,'wqewqe'),(3,'qwewe');
     io:format("SQL query for inserting group of tasks ~p", [Tasks]).
