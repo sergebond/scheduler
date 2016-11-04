@@ -24,15 +24,13 @@ init([]) ->
     {ok, dict:new()}.
 
 handle_call({schedule, TaskID, PID, Type, Time}, _From, State) ->
-    io:format("~nThere was a call ~p", [{TaskID, PID, Type, Time}]),
     NewState =
         case dict:find(PID, State) of
             {ok, QueueID} ->
-                io:format("~nPutting task to queue ~p", [{put, TaskID, Type, Time}]),
-                gen_server:cast(QueueID, {put, TaskID, Type, Time}), %% @todo не уверен насчет каст
+                gen_server:call(QueueID, {put, TaskID, Type, Time}),
                 State;
             error ->
-                io:format("~nStarting Worker for ~p ", [PID]),
+%%                io:format("~nStarting Worker for ~p ", [PID]),
                 {ok, NewQueuePid} =
                     supervisor:start_child(queues_sup, [{TaskID, PID, Type, Time}]),
                 link(NewQueuePid), %% @todo Доделать обработку при закрытии очереди
@@ -43,10 +41,8 @@ handle_call({schedule, TaskID, PID, Type, Time}, _From, State) ->
 handle_call({unschedule, TaskID, PID}, _From, State) ->
     case dict:find(PID, State) of
         {ok, QueueID} ->
-            io:format("~nErasing task queue ~p", [{delete, TaskID}]),
-            gen_server:cast(QueueID, {put, TaskID}); %% @todo не уверен насчет каст
+            gen_server:cast(QueueID, {put, TaskID});
         error ->
-            io:format("~nCould not find queue ~p ", [PID]),
             {error, not_found}
     end,
     {reply, ok, State};

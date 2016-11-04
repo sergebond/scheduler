@@ -1,19 +1,12 @@
-%%%-------------------------------------------------------------------
-%%% @author srg
-%%% @copyright (C) 2016, <COMPANY>
-%%% @doc
-%%%
-%%% @end
-%%% Created : 02. Nov 2016 17:39
-%%%-------------------------------------------------------------------
 -module(scheduler).
 -author("srg").
 
+-include("scheduler.hrl").
 
 -export([start/0, stop/0]).
 -export([schedule/4, unschedule/2]).
 
--export([test/0, test1/0]).
+-export([test/0]).
 
 -define(SRV, scheduler_srv).
 
@@ -42,7 +35,7 @@ schedule(TaskID, PID, Type, Time) ->
 
 -spec unschedule(TaskID :: binary(), PID :: integer()) -> ok.
 unschedule(TaskID, PID) ->
-    gen_server:cast(?SRV, {unschedule, TaskID, PID}). %% @todo нужен call или cast?
+    gen_server:call(?SRV, {unschedule, TaskID, PID}). %% @todo нужен call или cast?
 
 %%%===================================================================
 %%% Internal functions
@@ -51,21 +44,26 @@ current_time() ->
     erlang:system_time(1).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%   TEST
+%%              TEST
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-test1()->
-    schedule(1234576, 10, static, current_time() + 10).
+generate_tasks(IdFrom, IdTo) ->
+    Rand = fun(Int) -> rand:uniform(Int) end,
+    RandTime = fun(RandInterval) -> current_time() + rand:uniform(RandInterval) end,
+    RandFromList = fun(List) -> lists:nth(rand:uniform(length(List)), List) end,
+    [#task{pid = Rand(200), taskID = Rand(1400), time = RandTime(20), type = RandFromList([static, dynamic]) }|| TaskID <- lists:seq(IdFrom, IdTo)].
 
 test() ->
-    schedule(1234576, 10, static, current_time()),
-    timer:sleep(1000),
-    schedule(1224323, 20, static, current_time()),
-    timer:sleep(1000),
-    schedule(1233456, 30, dynamic, current_time()),
-    timer:sleep(1000),
-    schedule(1263456, 40, static, current_time()),
-    timer:sleep(1000),
-    schedule(1723456, 50, static, current_time()),
-    timer:sleep(1000),
-    schedule(1234586, 60, static, current_time()).
+    Tasks = generate_tasks(100, 30200),
+    TasksToErase = generate_tasks(100, 30000),
+    Length = length(Tasks),
+    Length1 = length(TasksToErase),
+%%    io:format("~n GENERATED Tasks ~p", [length(Tasks)]),
+    F = fun() ->
+            lists:foreach(fun(#task{pid = PID, taskID = TaskID, time = Time, type = Type}) ->
+            schedule(TaskID, PID, Type, Time) end, Tasks)
+        end,
+    F1 = fun() ->
+            lists:foreach(fun(#task{taskID = TaskID, pid = PID}) -> unschedule(TaskID, PID)  end, TasksToErase)
+        end,
+    {Time, _Value} = timer:tc(fun() -> F(), F1() end) ,
+    io:format("~n ~p Insertions/Deletions Time is ~p sec ~n", [Length + Length1, Time/1000000]).

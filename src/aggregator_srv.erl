@@ -62,7 +62,7 @@ save_to_db([]) ->
 ok;
 save_to_db(Tasks) ->
     %% insert into tablename (id,blabla) values(1,'werwer'),(2,'wqewqe'),(3,'qwewe');
-    io:format("SQL query for inserting group of tasks ~p", [Tasks]).
+    io:format("SQL query for inserting group of tasks lenghth ~p", [length(Tasks)]).
 
 get_from_db(PID, Quantity) ->
     %% SELECT FROM tablename WHERE pid = $PID ORDER BY time DESC LIMIT $quantity Примерный запрос в базу

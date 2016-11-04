@@ -11,7 +11,7 @@
 
 start(_StartType, _StartArgs) ->
     {ok, SchedulerSup} = scheduler_sup:start_link(),
-    {ok, _QueuesSup} =  supervisor:start_child(SchedulerSup, ?CHILD(queues_sup, queues_sup, supervisor)).
+    {ok, _QueuesSup} =  supervisor:start_child(SchedulerSup, ?CHILD(queues_sup, supervisor)).
 
 stop(_State) ->
     ok.
