@@ -1,11 +1,14 @@
-Для запуска 
-rebar compile 
-./start.sh
+* scheduler
+Для запуска
 
-Для запуска теста
-scheduler:test().
+   #+BEGIN_SRC
+rebar compile&&./start.sh
+   #+BEGIN_SRC
 
-
+Для запуска бенчмарка 
+   #+BEGIN_SRC
+scheduler:benchmark().
+   #+BEGIN_SRC
 
 # scheduler
 Реализовать приложение для вызова событий по времени.
