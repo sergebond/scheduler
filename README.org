@@ -6,7 +6,7 @@
    rebar eunit
    #+END_SRC
    
-   Для запуска
+   Для запуска приложения
 
    #+BEGIN_SRC
    rebar compile&&./start.sh
