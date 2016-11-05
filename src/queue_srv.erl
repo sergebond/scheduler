@@ -13,6 +13,9 @@
     terminate/2,
     code_change/3]).
 
+-export([maybe_apply_tasks/1,
+    maybe_store_part_to_db/2]). %% For tests
+
 -include("scheduler.hrl").
 
 -define(HEARTBEAT_INTERVAL, 1000).
@@ -79,7 +82,7 @@ maybe_apply_tasks(Tasks) ->
     ToApplyLength = erlang:length(TasksToApply),
     case ToApplyLength of
         0 ->
-            {SortedTasks, ToApplyLength};
+            {SortedTasks, OldLength};
         NotNullLength ->
             push_to_mq(TasksToApply),
             {lists:nthtail(NotNullLength, SortedTasks), OldLength - NotNullLength}

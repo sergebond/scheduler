@@ -44,7 +44,7 @@ current_time() ->
     erlang:system_time(1).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%              TEST
+%%          BENCHMARK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 generate_tasks(IdFrom, IdTo) ->
     Rand = fun(Int) -> rand:uniform(Int) end,
@@ -58,9 +58,7 @@ generate_tasks(IdFrom, IdTo) ->
 benchmark() ->
     Tasks = generate_tasks(1, 200000),
     TasksToErase = generate_tasks(1, 100000),
-    Length = length(Tasks),
-    Length1 = length(TasksToErase),
-%%    io:format("~n GENERATED Tasks ~p", [length(Tasks)]),
+    Length = length(Tasks), Length1 = length(TasksToErase),
     F = fun() ->
             lists:foreach(fun(#task{pid = PID, taskID = TaskID, time = Time, type = Type}) ->
             schedule(TaskID, PID, Type, Time) end, Tasks),
@@ -80,7 +78,6 @@ benchmark() ->
 
 pmap(ListOfFun) ->
     Pids = lists:map(fun(Fun) -> spawn_link(Fun) end, ListOfFun),
-
     wait_for_ending(Pids).
 
 wait_for_ending([]) -> ok;
@@ -89,7 +86,7 @@ wait_for_ending(Pids) ->
     receive
         {'EXIT', Pid, normal} ->
             wait_for_ending(lists:delete(Pid, Pids));
-        Message ->
-            io:format("~nSome another message ~p", [Message]),
+        _Message ->
+%%            io:format("~nSome another message ~p", [Message]),
             wait_for_ending(Pids)
     end.
