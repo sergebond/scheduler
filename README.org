@@ -1,5 +1,11 @@
 *  SCHEDULER
    
+   Для тестов 
+   
+   #+BEGIN_SRC
+   rebar eunit
+   #+END_SRC
+   
    Для запуска
 
    #+BEGIN_SRC
