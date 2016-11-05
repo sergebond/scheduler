@@ -26,7 +26,7 @@ init([]) ->
 
 handle_call({to_db, List}, _From, Tasks) when is_list(List) ->
     NewTasks =  Tasks ++ List,
-    io:format("~n ++++++Length Tasks in aggregator ~p", [length(NewTasks)]),
+%%    io:format("~n ++++++Length Tasks in aggregator ~p", [length(NewTasks)]),
     {reply, ok, NewTasks};
 
 handle_call({from_db, PID, HowMuch}, _From, Tasks) ->
@@ -62,9 +62,9 @@ save_to_db([]) ->
 ok;
 save_to_db(Tasks) ->
     %% insert into tablename (id,blabla) values(1,'werwer'),(2,'wqewqe'),(3,'qwewe');
-    io:format("SQL query for inserting group of tasks lenghth ~p", [length(Tasks)]).
+    io:format("~nSQL query for inserting group of tasks, ~p records writing to base", [length(Tasks)]).
 
 get_from_db(PID, Quantity) ->
     %% SELECT FROM tablename WHERE pid = $PID ORDER BY time DESC LIMIT $quantity Примерный запрос в базу
-    io:format("SQL query for selecting and deleting group of tasks PID ~p, quantity ~p", [PID, Quantity]),
+    io:format("~nSQL query for selecting and deleting group of tasks PID ~p, quantity ~p", [PID, Quantity]),
     ok.

@@ -6,7 +6,7 @@
 -export([start/0, stop/0]).
 -export([schedule/4, unschedule/2]).
 
--export([test/0]).
+-export([benchmark/0]).
 
 -define(SRV, scheduler_srv).
 
@@ -50,20 +50,46 @@ generate_tasks(IdFrom, IdTo) ->
     Rand = fun(Int) -> rand:uniform(Int) end,
     RandTime = fun(RandInterval) -> current_time() + rand:uniform(RandInterval) end,
     RandFromList = fun(List) -> lists:nth(rand:uniform(length(List)), List) end,
-    [#task{pid = Rand(200), taskID = Rand(1400), time = RandTime(20), type = RandFromList([static, dynamic]) }|| TaskID <- lists:seq(IdFrom, IdTo)].
+    [#task{pid = Rand(20),
+        taskID = TaskID, %% Есть вероятность, что таски будут повторяться, чтобы потестить замену существующей,  TaskID - для набора уникальных тасок
+        time = RandTime(20),
+        type = RandFromList([static, dynamic]) }|| TaskID <- lists:seq(IdFrom, IdTo)].
 
-test() ->
-    Tasks = generate_tasks(100, 30200),
-    TasksToErase = generate_tasks(100, 30000),
+benchmark() ->
+    Tasks = generate_tasks(1, 200000),
+    TasksToErase = generate_tasks(1, 100000),
     Length = length(Tasks),
     Length1 = length(TasksToErase),
 %%    io:format("~n GENERATED Tasks ~p", [length(Tasks)]),
     F = fun() ->
             lists:foreach(fun(#task{pid = PID, taskID = TaskID, time = Time, type = Type}) ->
-            schedule(TaskID, PID, Type, Time) end, Tasks)
+            schedule(TaskID, PID, Type, Time) end, Tasks),
+            io:format("~nSceduling ends")
         end,
     F1 = fun() ->
-            lists:foreach(fun(#task{taskID = TaskID, pid = PID}) -> unschedule(TaskID, PID)  end, TasksToErase)
+            lists:foreach(fun(#task{taskID = TaskID, pid = PID}) -> unschedule(TaskID, PID)  end, TasksToErase),
+            io:format("~nUnsceduling ends")
         end,
-    {Time, _Value} = timer:tc(fun() -> F(), F1() end) ,
-    io:format("~n ~p Insertions/Deletions Time is ~p sec ~n", [Length + Length1, Time/1000000]).
+    {Time, _Value} = timer:tc(fun() -> pmap([F,F1]) end) ,
+        io:format("
+        ~n=======================BENCHMARK RESULTS============================~n
+        ~p Insertions/Deletions Time is ~p sec
+        AVERAGE: ~p operations per sec
+        ~n====================================================================~n",
+        [Length + Length1, Time/1000000, round((Length + Length1)/(Time/1000000))]).
+
+pmap(ListOfFun) ->
+    Pids = lists:map(fun(Fun) -> spawn_link(Fun) end, ListOfFun),
+
+    wait_for_ending(Pids).
+
+wait_for_ending([]) -> ok;
+wait_for_ending(Pids) ->
+    process_flag(trap_exit, true),
+    receive
+        {'EXIT', Pid, normal} ->
+            wait_for_ending(lists:delete(Pid, Pids));
+        Message ->
+            io:format("~nSome another message ~p", [Message]),
+            wait_for_ending(Pids)
+    end.
