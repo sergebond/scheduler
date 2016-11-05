@@ -12,6 +12,17 @@
    scheduler:benchmark().
    #+END_SRC
    
+** API
+   
+   #+BEGIN_SRC
+   -spec scheduler:schedule(TaskID :: binary(), PID :: integer(),
+             Type :: static|dynamic,
+             Time :: {rel, integer()}|integer()) -> ok.
+             
+   -spec scheduler:unschedule(TaskID :: binary(), PID :: integer()) -> ok.     
+   #+END_SRC
+  
+   
 ** architecture
    Cупервизор scheduler_sup со стратегией one_for_all запускает два воркера scheduler_srv и aggregator_srv и дочерний супервизор queue_sup 
    scheduler_srv - пул очередей, запускает воркер queue_srv для каждого нового processID из под супервизора queue_sup (simple_one_for_one). agregator_srv - воркер, собирает "излишки данных" из очередей и через промежуток времени ложит в базу.
