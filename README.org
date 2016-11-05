@@ -10,7 +10,7 @@ rebar compile&&./start.sh
 scheduler:benchmark().
    #+BEGIN_SRC
 
-# scheduler
+** task
 Реализовать приложение для вызова событий по времени.
 
 
