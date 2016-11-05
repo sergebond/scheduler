@@ -50,28 +50,28 @@ generate_tasks(IdFrom, IdTo) ->
     Rand = fun(Int) -> rand:uniform(Int) end,
     RandTime = fun(RandInterval) -> current_time() + rand:uniform(RandInterval) end,
     RandFromList = fun(List) -> lists:nth(rand:uniform(length(List)), List) end,
-    [#task{pid = Rand(20),
-        taskID = TaskID, %% Есть вероятность, что таски будут повторяться, чтобы потестить замену существующей,  TaskID - для набора уникальных тасок
-        time = RandTime(20),
+    [#task{pid = Rand(200), %% Количество процессов
+        taskID = integer_to_binary(Rand(5000)), %% Есть вероятность, что таски будут повторяться, чтобы потестить замену существующей,  TaskID - для набора уникальных тасок
+        time = RandTime(5),
         type = RandFromList([static, dynamic]) }|| TaskID <- lists:seq(IdFrom, IdTo)].
 
 benchmark() ->
-    Tasks = generate_tasks(1, 200000),
-    TasksToErase = generate_tasks(1, 100000),
+    Tasks = generate_tasks(1, 300000),
+    TasksToErase = generate_tasks(1, 200000),
     Length = length(Tasks), Length1 = length(TasksToErase),
     F = fun() ->
             lists:foreach(fun(#task{pid = PID, taskID = TaskID, time = Time, type = Type}) ->
             schedule(TaskID, PID, Type, Time) end, Tasks),
-            io:format("~nSceduling ends")
+            io:format("~nScheduling ends")
         end,
     F1 = fun() ->
             lists:foreach(fun(#task{taskID = TaskID, pid = PID}) -> unschedule(TaskID, PID)  end, TasksToErase),
-            io:format("~nUnsceduling ends")
+            io:format("~nUnscheduling ends")
         end,
     {Time, _Value} = timer:tc(fun() -> pmap([F,F1]) end) ,
         io:format("
         ~n=======================BENCHMARK RESULTS============================~n
-        ~p Insertions/Deletions Time is ~p sec
+        ~p Insertions/Deletions, Time is ~p sec
         AVERAGE: ~p operations per sec
         ~n====================================================================~n",
         [Length + Length1, Time/1000000, round((Length + Length1)/(Time/1000000))]).
